@@ -6,7 +6,7 @@ SHELL ["/bin/bash", "-c"]
 
 RUN apt update
 
-RUN apt install -y curl git
+RUN apt install -y curl git libgcc-s1
 
 RUN curl -L https://foundry.paradigm.xyz | bash
 
