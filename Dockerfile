@@ -1,16 +1,8 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.19-bullseye
+FROM golang:1.19-bullseye AS build
 
 SHELL ["/bin/bash", "-c"]
-
-RUN apt update
-
-RUN apt install -y curl git
-
-RUN curl -L https://foundry.paradigm.xyz | bash
-
-RUN /root/.foundry/bin/foundryup
 
 WORKDIR /app
 
@@ -24,6 +16,24 @@ COPY *.go ./
 
 RUN go build -o /anvil-persistence
 
+FROM ghcr.io/foundry-rs/foundry:latest
+
+USER root
+
+RUN apt update
+
+RUN apt install -y curl
+
+USER foundry
+
+WORKDIR /app
+
+RUN mkdir -p /app/data
+
+RUN chown foundry:foundry /app/data
+
+COPY --from=build --chown=foundry:foundry /anvil-persistence /anvil-persistence
+
 EXPOSE 8545
 
-CMD [ "/anvil-persistence", "-command=/root/.foundry/bin/anvil", "-file=data/anvil_state.txt", "-host=0.0.0.0" ]
+# CMD [ "/anvil-persistence", "-command=/usr/local/bin/anvil", "-file=data/anvil_state.txt", "-host=0.0.0.0" ]
